@@ -1,0 +1,139 @@
+.nav {
+  width: 224px;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) 12px;
+  gap: 4px;
+}
+
+.section {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 14px 12px 6px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background 0.16s, color 0.16s;
+  text-align: left;
+  position: relative;
+}
+.item:hover {
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+}
+.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.identity {
+  margin: 8px 4px 0;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+}
+
+.identityLabel {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.identityName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.identityId {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: normal;
+  line-height: 1.4;
+}
+
+.signOut {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--error);
+  padding: 6px 0;
+}
+.signOut:hover {
+  text-decoration: underline;
+}
+
+.compact {
+  width: 62px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.compact .section,
+.compact .identityLabel,
+.compact .identityName,
+.compact .identityId,
+.compact .signOut,
+.compact .badge {
+  display: none;
+}
+.compact .item {
+  justify-content: center;
+  padding: 12px 8px;
+}
+.compact .identity {
+  min-height: 36px;
+  padding: 7px;
+  margin: 8px 0 0;
+}
+
+/* v0.8.9 premium navigation — existing app navigation and roles unchanged. */
+.nav { background: linear-gradient(180deg, var(--bg-surface), var(--bg-input)); border-right-color: var(--border-strong); }
+.item { border: 1px solid transparent; letter-spacing: .005em; }
+.item:hover { border-color: var(--border); transform: translateX(2px); }
+.active { background: linear-gradient(93deg,var(--accent-soft),var(--bg-surface-2)); border-color: var(--border); box-shadow: inset 0 1px 0 rgba(255,255,255,.02); }
+.active::before { box-shadow: 0 0 14px var(--accent-ring); }
+.identity { border-color: var(--border-strong); background: linear-gradient(150deg,var(--bg-surface-2),var(--bg-input)); box-shadow: var(--shadow-soft); }
+@media(prefers-reduced-motion:reduce) { .item { transition:none; } .item:hover { transform:none; } }
