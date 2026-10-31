@@ -1,0 +1,173 @@
+.bar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px 0 16px;
+  background: var(--titlebar-background);
+  border-bottom: 1px solid var(--border);
+  /* Native drag is handled by WebView2 pointer capture and the WinForms host. */
+  cursor: grab;
+  touch-action: none;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.nowPlaying {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  padding: 0 10px;
+  margin-right: 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-ring);
+  cursor: default;
+}
+
+.pulse {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: musicPulse 1.8s ease-out infinite;
+}
+
+@keyframes musicPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse::after {
+    animation: none;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.brandMark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #050505;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.brandMark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brandSub {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 11px;
+  margin-left: 2px;
+}
+
+.statusDot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin: 0 5px 1px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+
+.controls {
+  display: flex;
+  cursor: default;
+}
+
+.ctrl {
+  width: 40px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.ctrl:hover,
+.ctrlActive {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.close:hover {
+  background: #c42b1c;
+  color: #fff;
+}
+
+/* Subtle, theme-aware motion while moving the actual Windows window.
+   The native window tracks the pointer without artificial easing or lag. */
+.barDragging {
+  cursor: grabbing;
+  border-bottom-color: var(--accent);
+  box-shadow: inset 0 -1px 0 var(--accent-ring), 0 4px 20px var(--accent-soft);
+}
+.barDragging::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  bottom: 0;
+  left: -50%;
+  height: 2px;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: dragGlow 0.9s ease-in-out infinite;
+}
+.barDragging .brandMark {
+  animation: dragMark 0.55s ease-in-out infinite alternate;
+}
+@keyframes dragGlow {
+  to { left: 100%; }
+}
+@keyframes dragMark {
+  to { transform: translateY(-1px); box-shadow: 0 0 18px var(--accent-ring); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .barDragging::after, .barDragging .brandMark { animation: none; }
+}
+
+/* Consistent subtle glass finish with the connection workspace. */
+.bar { backdrop-filter: blur(18px); border-bottom-color: var(--border-strong); }
+.brand { letter-spacing: .015em; }
+.brandMark { box-shadow: 0 0 15px var(--accent-soft); }
