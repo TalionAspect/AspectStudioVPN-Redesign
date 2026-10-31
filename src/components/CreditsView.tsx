@@ -11,7 +11,7 @@ export default function CreditsView() {
       </div>
 
       <section className={styles.hero}>
-        <div className={styles.logo}><img src="/logo_2_.png" alt="Aspect Studio" /></div>
+        <div className={styles.logo}><img src="/aspect-logo.svg" alt="Aspect Studio" /></div>
         <div>
           <div className={styles.name}>TalionAspect</div>
           <div className={styles.role}>Creator and owner</div>
