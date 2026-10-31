@@ -56,7 +56,7 @@ export default function SignIn({ state, onSignIn, onApprove, nativeAvailable }: 
     <div className={styles.gate}>
       <div className={styles.card}>
         <div className={styles.logo}>
-          <img src="/logo_2_.png" alt="Aspect Studio" />
+          <img src="/aspect-logo.svg" alt="Aspect Studio" />
         </div>
         <h1 className={styles.title}>Sign in to Aspect Studio</h1>
         <p className={styles.subtitle}>
