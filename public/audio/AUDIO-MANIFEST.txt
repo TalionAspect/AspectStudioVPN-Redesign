@@ -1,0 +1,17 @@
+Aspect Studio VPN v0.8.4 bundled audio manifest
+
+track-1.mp3
+  Title: Ad Infinitum
+  Artist: Dreamstate Logic
+  Duration: 00:09:34.224
+  SHA-256: 9f6abf55cf547015b4ba4d4014eadb61f3179b817e570519f3bd7ffa32b752c1
+
+track-2.mp3
+  Title: Reflections Of Reality
+  Artist: Dreamstate Logic
+  Duration: 00:09:53.293
+  SHA-256: ec1690827dbf5ca6d1c6c5f1de4c5ee88aa3c157cab737de85dbae483f4fff05
+
+Both files were checked as MP3 audio streams (MPEG Layer III, 44.1 kHz,
+320 kbps joint stereo) before inclusion. Hashes allow the bundled files to
+be checked after copying or packaging.
