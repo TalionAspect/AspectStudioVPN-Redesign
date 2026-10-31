@@ -72,7 +72,7 @@ export default function TitleBar({ designDemo, musicPlaying, musicVolume }: Prop
       }}
     >
       <div className={styles.brand}>
-        <span className={styles.brandMark}><img src="/logo_2_.png" alt="Aspect Studio" draggable={false} /></span>
+        <span className={styles.brandMark}><img src="/aspect-logo.svg" alt="Aspect Studio" draggable={false} /></span>
         Aspect Studio VPN
         <span className={styles.brandSub}>Desktop Client <span className={styles.statusDot} /> {designDemo ? "DESIGN DEMO" : "Secure workspace"}</span>
       </div>
