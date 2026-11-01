@@ -47,6 +47,7 @@ export default function ConnectView({ state, onToggle, onNavigateProfile }: Prop
   const busy = mode === "Connecting" || mode === "Reconnecting";
   const connected = mode === "Connected";
   const hasProfile = state.profileValid;
+  const isAmnezia = state.vpnEngine === "amneziawg";
   const stage = mode === "Connected" ? "connected" : busy ? "working" : mode === "Error" ? "error" : "idle";
 
   const counters = [
@@ -70,7 +71,7 @@ export default function ConnectView({ state, onToggle, onNavigateProfile }: Prop
       {!hasProfile && (
         <div className={styles.banner} role="status">
           <ShieldIcon size={19} />
-          <span className={styles.bannerText}>No validated private profile is available for this account. Import your <code>.ovpn</code> profile to connect.</span>
+          <span className={styles.bannerText}>No validated private profile is available for this account. Import your <code>{isAmnezia ? ".conf" : ".ovpn"}</code> profile to connect.</span>
           <Button variant="secondary" onClick={onNavigateProfile}><FileIcon size={15} /> Invite profile</Button>
         </div>
       )}
@@ -99,7 +100,7 @@ export default function ConnectView({ state, onToggle, onNavigateProfile }: Prop
           <div className={styles.route}>
             <div className={styles.routeNode}><span className={styles.routeDot} /><div><strong>YOUR DEVICE</strong><small>{state.username ?? "Private client"}</small></div></div>
             <div className={`${styles.routeLine} ${connected ? styles.routeLineActive : ""}`}><i /><i /><i /></div>
-            <div className={styles.routeNode}><span className={styles.serverDot} /><div><strong>MARSEILLE / FR</strong><small>84.235.229.141 · TCP 8444</small></div></div>
+            <div className={styles.routeNode}><span className={styles.serverDot} /><div><strong>MARSEILLE / FR</strong><small>84.235.229.141 · {isAmnezia ? "AmneziaWG UDP 51820" : "OpenVPN TCP 8444"}</small></div></div>
           </div>
           <button type="button" className={`${styles.connectButton} ${connected ? styles.disconnectButton : ""}`} onClick={onToggle} disabled={busy} aria-label={connected ? "Disconnect VPN" : busy ? "VPN connection in progress" : "Connect VPN"}>
             <PowerIcon size={19} />
@@ -126,8 +127,8 @@ export default function ConnectView({ state, onToggle, onNavigateProfile }: Prop
       <div className={styles.footerTelemetry}>
         <div><span>DOWNLOAD RATE</span><strong>{connected ? `${formatBytes(state.stats.downloadBps)}/s` : "—"}</strong></div>
         <div><span>UPLOAD RATE</span><strong>{connected ? `${formatBytes(state.stats.uploadBps)}/s` : "—"}</strong></div>
-        <div><span>TCP PROBE FAILURES</span><strong>{state.stats.probeLossPercent == null ? "—" : `${state.stats.probeLossPercent}%`}</strong></div>
-        <p>Latency is the TCP handshake to your VPN server, not Roblox in-game ping.</p>
+        <div><span>PROBE FAILURES</span><strong>{state.stats.probeLossPercent == null ? "—" : `${state.stats.probeLossPercent}%`}</strong></div>
+        <p>Server probe latency is not Roblox in-game ping. Engine: {isAmnezia ? "AmneziaWG (UDP)" : "OpenVPN (TCP)"}.</p>
       </div>
     </section>
   );
