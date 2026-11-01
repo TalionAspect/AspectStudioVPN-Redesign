@@ -310,3 +310,6 @@ code {
   --titlebar-background: linear-gradient(180deg, color-mix(in srgb, #030812 90%, #22d3ee), #030812);
 }
 
+
+/* Keep the 3D Ember scene visible beneath the application workspace. */
+:root[data-theme="ember"] { --main-background: transparent; }
