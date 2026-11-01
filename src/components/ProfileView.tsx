@@ -19,11 +19,16 @@ interface Props {
   onFetch: () => Promise<{ ok: boolean; detail: string }>;
 }
 
-const directives = [
+const openVpnDirectives = [
   "client", "dev tun", "proto tcp-client", "remote 84.235.229.141 8444",
   "verify-x509-name", "auth SHA256", "data-ciphers AES-256-GCM",
   "tls-crypt", "<ca>", "<cert>", "<key>", "resolv-retry 5", "nobind",
   "persist-key", "persist-tun",
+];
+
+const amneziaDirectives = [
+  "PrivateKey", "Address", "MTU", "Jc", "Jmin", "Jmax", "S1–S4", "H1–H4",
+  "HeaderProtectionKey", "PublicKey", "Endpoint", "AllowedIPs", "PersistentKeepalive",
 ];
 
 export default function ProfileView({ state, nativeAvailable, onImport, onClear, onFetch }: Props) {
@@ -104,7 +109,7 @@ export default function ProfileView({ state, nativeAvailable, onImport, onClear,
             )}
           </div>
           <div className={styles.dropTitle}>
-            {busy ? "Validating profile…" : "Drop your {profileExtension} file here"}
+            {busy ? "Validating profile…" : `Drop your ${profileExtension} file here`}
           </div>
           <div className={styles.dropHint}>
             or click to browse — {isAmnezia ? "AmneziaWG UDP 51820" : "OpenVPN TCP 8444"}; native validation is required
@@ -161,11 +166,11 @@ export default function ProfileView({ state, nativeAvailable, onImport, onClear,
           </div>
           <div className={styles.row}>
             <span className={styles.rowKey}>Cert chain</span>
-            <span className={styles.rowVal}>CA + client cert + key embedded</span>
+            <span className={styles.rowVal}>{isAmnezia ? "Per-device keys (no X.509 certificate chain)" : "CA + client cert + key embedded"}</span>
           </div>
 
           <div className={styles.directives}>
-            {directives.map((d) => (
+            {(isAmnezia ? amneziaDirectives : openVpnDirectives).map((d) => (
               <span key={d} className={styles.directive}>
                 {d}
               </span>
@@ -202,11 +207,9 @@ export default function ProfileView({ state, nativeAvailable, onImport, onClear,
           Validation policy
         </div>
         <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-          The validator rejects profiles that reference unapproved servers,
-          include external script calls, or use unsupported inline blocks. Only
-          directives needed by the private server are accepted. The file must
-          embed its CA, client certificate, and key directly — external password
-          files are not supported.
+          {isAmnezia
+            ? "Native AmneziaWG validation must reject unapproved endpoints, unsupported directives, command hooks and unsafe file references. Each approved device requires an individually issued key and protected local profile storage. A browser preview cannot validate or activate an AmneziaWG tunnel."
+            : "The native OpenVPN validator rejects profiles with unapproved servers, external script calls or unsupported directives. The file must embed its CA, client certificate and key; external password files are not supported."}
         </p>
       </div>
     </div>
