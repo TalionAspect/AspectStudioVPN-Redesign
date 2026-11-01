@@ -29,6 +29,8 @@ const directives = [
 export default function ProfileView({ state, nativeAvailable, onImport, onClear, onFetch }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const isAmnezia = state.vpnEngine === "amneziawg";
+  const profileExtension = isAmnezia ? ".conf" : ".ovpn";
   const [result, setResult] = useState<{ ok: boolean; detail: string } | null>(null);
 
   const handleImport = async (name: string, valid: boolean) => {
@@ -52,7 +54,7 @@ export default function ProfileView({ state, nativeAvailable, onImport, onClear,
       <div className={styles.header}>
         <h1 className={styles.title}>Invite Profile</h1>
         <p className={styles.subtitle}>
-          Import a private <code>.ovpn</code> invitation file. The profile is
+          Import a private <code>{profileExtension}</code> invitation file. The profile is
           validated locally — only allowlisted directives are accepted.
         </p>
       </div>
@@ -60,7 +62,7 @@ export default function ProfileView({ state, nativeAvailable, onImport, onClear,
       <input
         ref={inputRef}
         type="file"
-        accept=".ovpn"
+        accept={isAmnezia ? ".conf" : ".ovpn"}
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -78,7 +80,7 @@ export default function ProfileView({ state, nativeAvailable, onImport, onClear,
             <ShieldIcon size={15} /> {busy ? "Checking profile…" : "Get my private profile automatically"}
           </Button>
           <span style={{ color: "var(--text-secondary)", fontSize: 12, alignSelf: "center" }}>
-            After your device is approved, no manual .ovpn download is required.
+            After your device is approved, the native host can provision your engine-specific profile.
           </span>
         </div>
       )}
@@ -102,10 +104,10 @@ export default function ProfileView({ state, nativeAvailable, onImport, onClear,
             )}
           </div>
           <div className={styles.dropTitle}>
-            {busy ? "Validating profile…" : "Drop your .ovpn file here"}
+            {busy ? "Validating profile…" : "Drop your {profileExtension} file here"}
           </div>
           <div className={styles.dropHint}>
-            or click to browse — max 256 KB, TCP 8444 only
+            or click to browse — {isAmnezia ? "AmneziaWG UDP 51820" : "OpenVPN TCP 8444"}; native validation is required
           </div>
           {!nativeAvailable && (
             <div className={styles.sampleRow}>
@@ -113,7 +115,7 @@ export default function ProfileView({ state, nativeAvailable, onImport, onClear,
                 className={styles.sample}
                 onClick={(e) => {
                   e.stopPropagation();
-                  void handleImport("aspect-invite.ovpn", true);
+                  void handleImport(isAmnezia ? "aspect-invite.conf" : "aspect-invite.ovpn", true);
                 }}
               >
                 Load demo invite
@@ -151,11 +153,11 @@ export default function ProfileView({ state, nativeAvailable, onImport, onClear,
           </div>
           <div className={styles.row}>
             <span className={styles.rowKey}>Protocol</span>
-            <span className={styles.rowVal}>TCP / 8444</span>
+            <span className={styles.rowVal}>{isAmnezia ? "AmneziaWG / UDP 51820" : "OpenVPN / TCP 8444"}</span>
           </div>
           <div className={styles.row}>
             <span className={styles.rowKey}>Cipher</span>
-            <span className={styles.rowVal}>AES-256-GCM</span>
+            <span className={styles.rowVal}>{isAmnezia ? "ChaCha20-Poly1305" : "AES-256-GCM"}</span>
           </div>
           <div className={styles.row}>
             <span className={styles.rowKey}>Cert chain</span>
