@@ -87,7 +87,6 @@ export function useAppState() {
           ...s,
           supportedEngines,
           vpnEngine,
-          ...s,
           deviceId: String(payload.deviceId ?? s.deviceId),
           hardwareBacked: payload.hardwareBacked === true,
           autoReconnect: payload.autoReconnect === true,
