@@ -2,7 +2,9 @@ import { useEffect, useState, type CSSProperties } from "react";
 import Button from "./Button";
 import { SettingsIcon, LockIcon, CpuIcon, CheckIcon } from "./icons";
 import type { AppState } from "../state/types";
-import { themes, type ThemeId } from "../state/theme";
+import type { ThemeId } from "../state/theme";
+import ThemePicker from "./ThemePicker";
+import type { Quality } from "../state/motion";
 import { musicTracks, unlockMusicPlayback, type MusicTrackId } from "./BackgroundMusic";
 import styles from "./SettingsView.module.css";
 
@@ -10,11 +12,15 @@ interface Props {
   state: AppState;
   onCheckUpdates: () => Promise<{ok: boolean; detail: string}>;
   onInstallUpdate: () => Promise<{ok: boolean; detail: string}>;
-  onUpdate: (patch: Partial<Pick<AppState, "authUrl" | "enginePath" | "autoReconnect" | "autoInstallUpdates">>) => void;
+  onUpdate: (patch: Partial<Pick<AppState, "authUrl" | "enginePath" | "autoReconnect" | "autoInstallUpdates" | "vpnEngine">>) => void;
   theme: ThemeId;
   onThemeChange: (theme: ThemeId) => void;
   animatedBg: boolean;
   onAnimatedBgChange: (value: boolean) => void;
+  quality: Quality;
+  onQualityChange: (value: Quality) => void;
+  pauseUnfocused: boolean;
+  onPauseUnfocusedChange: (value: boolean) => void;
   musicOn: boolean;
   onMusicChange: (value: boolean) => void;
   musicTrack: MusicTrackId;
@@ -23,7 +29,7 @@ interface Props {
   onMusicVolumeChange: (volume: number) => void;
 }
 
-export default function SettingsView({ state, onUpdate, onCheckUpdates, onInstallUpdate, theme, onThemeChange, animatedBg, onAnimatedBgChange, musicOn, onMusicChange, musicTrack, onMusicTrackChange, musicVolume, onMusicVolumeChange }: Props) {
+export default function SettingsView({ state, onUpdate, onCheckUpdates, onInstallUpdate, theme, onThemeChange, animatedBg, onAnimatedBgChange, quality, onQualityChange, pauseUnfocused, onPauseUnfocusedChange, musicOn, onMusicChange, musicTrack, onMusicTrackChange, musicVolume, onMusicVolumeChange }: Props) {
   const [authUrl, setAuthUrl] = useState(state.authUrl);
   const [enginePath, setEnginePath] = useState(state.enginePath);
   const autoConnect = false;
@@ -57,7 +63,7 @@ export default function SettingsView({ state, onUpdate, onCheckUpdates, onInstal
       <div className={styles.header}>
         <h1 className={styles.title}>Settings</h1>
         <p className={styles.subtitle}>
-          Configure the OpenVPN core engine, authorization endpoint, and tunnel
+          Configure the VPN engine, authorization endpoint, and tunnel
           behavior.
         </p>
       </div>
@@ -92,6 +98,35 @@ export default function SettingsView({ state, onUpdate, onCheckUpdates, onInstal
         <div className={styles.sectionTitle}>
           <CpuIcon size={16} style={{ color: "var(--accent)" }} />
           Engine
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Connection engine</label>
+          <div className={styles.segments} role="group" aria-label="VPN transport engine">
+            {([
+              { id: "amneziawg", title: "AmneziaWG · UDP 51820" },
+              { id: "openvpn", title: "OpenVPN · TCP 8444" },
+            ] as const).map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`${styles.segment} ${state.vpnEngine === option.id ? styles.segmentActive : ""}`}
+                disabled={state.vpnState !== "Disconnected" || !state.supportedEngines.includes(option.id)}
+                onClick={() => onUpdate({ vpnEngine: option.id })}
+                aria-pressed={state.vpnEngine === option.id}
+                title={!state.supportedEngines.includes(option.id) ? "Requires an updated native Windows VPN host" : undefined}
+              >
+                {option.title}
+              </button>
+            ))}
+          </div>
+          {!state.supportedEngines.includes("amneziawg") && (
+            <p className={styles.hint} role="status">
+              AmneziaWG works as a standalone client. This Windows host has not advertised
+              support for running it inside Aspect Studio VPN yet, so the option is locked
+              until the native host has been upgraded.
+            </p>
+          )}
+          <p className={styles.hint}>Switch engines only while disconnected. Only the native host can establish a VPN tunnel.</p>
         </div>
         <div className={styles.field}>
           <label className={styles.label}>OpenVPN core path</label>
@@ -145,44 +180,16 @@ export default function SettingsView({ state, onUpdate, onCheckUpdates, onInstal
           <SettingsIcon size={16} style={{ color: "var(--accent)" }} />
           Appearance
         </div>
-        <div className={styles.themeGrid}>
-          {themes.map((option) => (
-            <button
-              key={option.id}
-              className={`${styles.themeCard} ${theme === option.id ? styles.themeCardActive : ""}`}
-              onClick={() => onThemeChange(option.id)}
-              aria-pressed={theme === option.id}
-            >
-              <span
-                className={styles.themeSwatch}
-                style={{ background: option.background, borderColor: option.accent }}
-              >
-                <span style={{ background: option.accent }} />
-                <span style={{ background: option.accent, opacity: 0.5 }} />
-              </span>
-              <span className={styles.themeCopy}>
-                <strong>{option.name}</strong>
-                <small>{option.description}</small>
-              </span>
-              {theme === option.id && <CheckIcon size={15} className={styles.themeCheck} />}
-            </button>
-          ))}
-        </div>
-        <div className={styles.toggleRow}>
-          <div>
-            <div className={styles.toggleLabel}>Animated background</div>
-            <div className={styles.toggleHint}>
-              Moving starfield or clouds on the Galaxy and Nebula themes.
-            </div>
-          </div>
-          <button
-            className={`${styles.switch} ${animatedBg ? styles.switchOn : ""}`}
-            onClick={() => onAnimatedBgChange(!animatedBg)}
-            aria-label="Animated background"
-          >
-            <span className={styles.switchKnob} />
-          </button>
-        </div>
+        <ThemePicker
+          theme={theme}
+          onThemeChange={onThemeChange}
+          animatedBg={animatedBg}
+          onAnimatedBgChange={onAnimatedBgChange}
+          quality={quality}
+          onQualityChange={onQualityChange}
+          pauseUnfocused={pauseUnfocused}
+          onPauseUnfocusedChange={onPauseUnfocusedChange}
+        />
         <div className={styles.toggleRow}>
           <div>
             <div className={styles.toggleLabel}>Background music</div>
@@ -303,7 +310,7 @@ export default function SettingsView({ state, onUpdate, onCheckUpdates, onInstal
 
       <div className={styles.about}>
         <div className={styles.aboutName}>Aspect Studio VPN</div>
-        Desktop Client v0.8.9 · OpenVPN core (TCP 8444)<br />
+        Frontend v0.8.9 · OpenVPN fallback (TCP 8444) · AmneziaWG support requires updated Windows host<br />
         ECDSA P-256 device identity · TPM 2.0 key storage<br />
         Session tickets are single-use and never replayed.
       </div>

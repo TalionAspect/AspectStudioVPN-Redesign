@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { initialState, type AppState, type DoctorReport, type LogEntry, type VpnState } from "./types";
+import { initialState, type AppState, type DoctorReport, type LogEntry, type VpnEngine, type VpnState } from "./types";
 
 export type OwnerAccount = { username: string; enabled: boolean; role: string; profileState: string };
 export type OwnerDevice = { username: string; deviceId: string; approved: boolean; hardwareBacked: boolean; created: number };
@@ -79,8 +79,14 @@ export function useAppState() {
         return;
       }
       if (message.type === "native.ready") {
+        // Only the native host can advertise a working engine; older hosts remain OpenVPN-only.
+        const supportedEngines: VpnEngine[] = ["openvpn"];
+        if (Array.isArray(payload.supportedEngines) && payload.supportedEngines.includes("amneziawg")) supportedEngines.push("amneziawg");
+        const vpnEngine: VpnEngine = payload.vpnEngine === "amneziawg" && supportedEngines.includes("amneziawg") ? "amneziawg" : "openvpn";
         setState((s) => ({
           ...s,
+          supportedEngines,
+          vpnEngine,
           deviceId: String(payload.deviceId ?? s.deviceId),
           hardwareBacked: payload.hardwareBacked === true,
           autoReconnect: payload.autoReconnect === true,
@@ -103,6 +109,9 @@ export function useAppState() {
         setState((s) => ({ ...s, signedIn: false, isOwner: false, role: "member", username: null, vpnState: "Disconnected", stateDetail: "Not connected" }));
       } else if (message.type === "vpn.state") {
         const next = String(payload.state) as VpnState;
+        if (payload.engine === "amneziawg" || payload.engine === "openvpn") {
+          setState((s) => s.supportedEngines.includes(payload.engine as VpnEngine) ? { ...s, vpnEngine: payload.engine as VpnEngine } : s);
+        }
         if (["Disconnected", "Connecting", "Connected", "Reconnecting", "Error"].includes(next)) {
           setVpnState(next, String(payload.detail ?? ""));
           pushLog(setState, next === "Error" ? "error" : "info", "engine", String(payload.detail ?? next));
@@ -256,16 +265,17 @@ export function useAppState() {
   }, [nativeAvailable, sendNative]);
 
   const importProfile = useCallback(async (fileName: string, valid: boolean) => {
-    if (nativeAvailable) return sendNative("importProfile");
+    if (nativeAvailable) return sendNative("importProfile", { vpnEngine: stateRef.current.vpnEngine });
     await wait(550);
-    if (!fileName.toLowerCase().endsWith(".ovpn") || !valid) return { ok: false, detail: "DESIGN DEMO: the preview rejected this profile." };
+    const extension = stateRef.current.vpnEngine === "amneziawg" ? ".conf" : ".ovpn";
+    if (!fileName.toLowerCase().endsWith(extension) || !valid) return { ok: false, detail: "DESIGN DEMO: the preview rejected this profile." };
     setState((s) => ({ ...s, profilePath: fileName, profileValid: true }));
     return { ok: true, detail: "DESIGN DEMO: profile accepted; no file was sent to a VPN engine." };
   }, [nativeAvailable, sendNative]);
 
   const fetchProfile = useCallback(async () => {
     if (!nativeAvailable) return { ok: false, detail: "Auto-provisioning requires the Windows application." };
-    const result = await sendNative("fetchProfile");
+    const result = await sendNative("fetchProfile", { vpnEngine: stateRef.current.vpnEngine });
     if (!result.ok) pushLog(setState, "warn", "profile", result.detail);
     return result;
   }, [nativeAvailable, sendNative]);
@@ -289,9 +299,18 @@ export function useAppState() {
     setState((s) => ({ ...s, profilePath: null, profileValid: false }));
   }, [nativeAvailable, sendNative]);
 
-  const updateSettings = useCallback((patch: Partial<Pick<AppState, "authUrl" | "enginePath" | "autoReconnect" | "autoInstallUpdates">>) => {
-    setState((s) => ({ ...s, ...patch }));
-    if (nativeAvailable) void sendNative("updateSettings", patch);
+  const updateSettings = useCallback((patch: Partial<Pick<AppState, "authUrl" | "enginePath" | "autoReconnect" | "autoInstallUpdates" | "vpnEngine">>) => {
+    const requested = patch.vpnEngine;
+    if (requested && (stateRef.current.vpnState !== "Disconnected" || !stateRef.current.supportedEngines.includes(requested))) {
+      pushLog(setState, "warn", "engine", "Engine unavailable or VPN must be disconnected before switching.");
+      return;
+    }
+    setState((s) => requested && requested !== s.vpnEngine
+      ? { ...s, ...patch, profilePath: null, profileValid: false }
+      : { ...s, ...patch });
+    if (nativeAvailable) void sendNative("updateSettings", patch).then((result) => {
+      if (!result.ok) pushLog(setState, "error", "engine", result.detail);
+    });
   }, [nativeAvailable, sendNative]);
 
   const runProbe = useCallback(async () => {

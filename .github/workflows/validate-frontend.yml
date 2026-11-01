@@ -1,0 +1,22 @@
+name: Validate Aspect VPN frontend
+
+on:
+  pull_request:
+  push:
+    branches:
+      - feature/restore-themes-amneziawg-ui
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install packages
+        run: npm install --no-audit --no-fund
+      - name: Type-check and bundle frontend
+        run: npm run build
