@@ -8,11 +8,12 @@ import DiagnosticsView from "./components/DiagnosticsView";
 import SettingsView from "./components/SettingsView";
 import CreditsView from "./components/CreditsView";
 import OwnerView from "./components/OwnerView";
-import AnimatedBackground from "./components/AnimatedBackground";
+import SpaceBackground from "./space/SpaceBackground";
+import { MotionProvider, resolveQuality, type Quality } from "./state/motion";
 import BackgroundMusic, { musicTracks, type MusicTrackId } from "./components/BackgroundMusic";
 import { useAppState } from "./state/useAppState";
 import type { ViewId } from "./state/types";
-import { themes, type ThemeId } from "./state/theme";
+import { themes, resolveThemeId, type ThemeId } from "./state/theme";
 import styles from "./App.module.css";
 
 export default function App() {
@@ -21,9 +22,11 @@ export default function App() {
   useEffect(() => { if (view === "owner" && !vpn.state.isOwner) setView("connect"); }, [view, vpn.state.isOwner]);
   const [theme, setTheme] = useState<ThemeId>(() => {
     const saved = window.localStorage.getItem("aspect-vpn-theme");
-    return themes.some((option) => option.id === saved) ? (saved as ThemeId) : "galaxy";
+    return resolveThemeId(saved);
   });
   const [animatedBg, setAnimatedBg] = useState(() => window.localStorage.getItem("aspect-vpn-animated-bg") !== "off");
+  const [quality, setQuality] = useState<Quality>(() => resolveQuality(window.localStorage.getItem("aspect-vpn-quality")));
+  const [pauseUnfocused, setPauseUnfocused] = useState(() => window.localStorage.getItem("aspect-vpn-pause-unfocused") !== "off");
   const [musicOn, setMusicOn] = useState(() => window.localStorage.getItem("aspect-vpn-music") === "on");
   const [musicTrack, setMusicTrack] = useState<MusicTrackId>(() => {
     const saved = window.localStorage.getItem("aspect-vpn-music-track");
@@ -45,6 +48,9 @@ export default function App() {
     window.localStorage.setItem("aspect-vpn-animated-bg", animatedBg ? "on" : "off");
   }, [animatedBg]);
 
+  useEffect(() => { window.localStorage.setItem("aspect-vpn-quality", quality); }, [quality]);
+  useEffect(() => { window.localStorage.setItem("aspect-vpn-pause-unfocused", pauseUnfocused ? "on" : "off"); }, [pauseUnfocused]);
+
   useEffect(() => {
     window.localStorage.setItem("aspect-vpn-music", musicOn ? "on" : "off");
   }, [musicOn]);
@@ -59,13 +65,15 @@ export default function App() {
 
   const frame = (content: ReactNode) => (
     <>
+      <MotionProvider enabled={animatedBg} quality={quality} pauseUnfocused={pauseUnfocused}>
       <div className={styles.window} data-theme={theme}>
-        {themeOption?.animated && animatedBg && <AnimatedBackground kind={themeOption.animated} />}
+        <SpaceBackground scene={themeOption?.scene} />
         <div className={styles.content}>
           <TitleBar designDemo={!vpn.nativeAvailable} musicPlaying={musicOn} musicVolume={musicVolume} />
           {content}
         </div>
       </div>
+      </MotionProvider>
       <BackgroundMusic enabled={musicOn} track={musicTrack} volume={musicVolume} />
     </>
   );
@@ -122,6 +130,10 @@ export default function App() {
             onThemeChange={setTheme}
             animatedBg={animatedBg}
             onAnimatedBgChange={setAnimatedBg}
+            quality={quality}
+            onQualityChange={setQuality}
+            pauseUnfocused={pauseUnfocused}
+            onPauseUnfocusedChange={setPauseUnfocused}
             musicOn={musicOn}
             onMusicChange={setMusicOn}
             musicTrack={musicTrack}
