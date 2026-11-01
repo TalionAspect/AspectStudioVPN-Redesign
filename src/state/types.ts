@@ -1,3 +1,5 @@
+export type VpnEngine = "openvpn" | "amneziawg";
+
 export type VpnState =
   | "Disconnected"
   | "Connecting"
@@ -47,6 +49,8 @@ export interface AppState {
   profileValid: boolean;
   authUrl: string;
   enginePath: string;
+  vpnEngine: VpnEngine;
+  supportedEngines: VpnEngine[];
   autoReconnect: boolean;
   autoInstallUpdates: boolean;
   update: { detail: string; version: string; available: boolean; staged: boolean };
@@ -76,6 +80,8 @@ export const initialState: AppState = {
   profileValid: false,
   authUrl: "https://api.aspectstudio.devs.surf:8443",
   enginePath: "C:\\Program Files\\OpenVPN\\bin\\openvpn.exe",
+  vpnEngine: "openvpn",
+  supportedEngines: ["openvpn"],
   autoReconnect: true,
   autoInstallUpdates: true,
   update: { detail: "Checking for releases…", version: "", available: false, staged: false },
